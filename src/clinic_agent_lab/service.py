@@ -2,9 +2,10 @@
 
 from collections.abc import Callable
 from datetime import UTC, datetime
+from math import isfinite
 
 from clinic_agent_lab.data import get_fixture
-from clinic_agent_lab.models import MedicationRequest, SafetyCard, State
+from clinic_agent_lab.models import Level, MedicationRequest, PhysicianDecision, SafetyCard, State
 from clinic_agent_lab.rules import evaluate_rules
 from clinic_agent_lab.store import Store, WorkflowError
 from clinic_agent_lab.tools import TOOL_ORDER, Tools
@@ -17,7 +18,7 @@ def utc_now() -> datetime:
 class AgentService:
     def __init__(self, store: Store, ttl_seconds: float = 300,
                  clock: Callable[[], datetime] = utc_now, tools: Tools | None = None):
-        if ttl_seconds <= 0:
+        if not isfinite(ttl_seconds) or ttl_seconds <= 0:
             raise ValueError("TTL must be positive")
         self.store, self.ttl_seconds, self.clock = store, ttl_seconds, clock
         self.tools = tools or Tools()
@@ -67,7 +68,7 @@ class AgentService:
             return self._detail(conn, case.id)
 
     def _detail(self, conn, case_id: str) -> dict:
-        case = self.store.case(conn, case_id)
+        case = self._expire(conn, case_id)
         row = conn.execute("SELECT * FROM drafts WHERE case_id=?", (case_id,)).fetchone()
         return {
             "case": case.model_dump(mode="json"),
@@ -83,3 +84,43 @@ class AgentService:
     def get(self, case_id: str) -> dict:
         with self.store.transaction() as conn:
             return self._detail(conn, case_id)
+
+    def _expire(self, conn, case_id: str):
+        case = self.store.case(conn, case_id)
+        now = self.clock()
+        if case.status in {State.ACCEPTED, State.GATHERING, State.DRAFTED, State.AWAITING} \
+                and now >= case.expires_at:
+            case = self.store.transition(conn, case_id, State.EXPIRED, now)
+        return case
+
+    def decide(self, case_id: str, decision: PhysicianDecision) -> dict:
+        error = None
+        # Expiry must commit even when a late decision is refused. Raise after transaction.
+        with self.store.transaction() as conn:
+            case = self._expire(conn, case_id)
+            if decision.role != "physician":
+                error = WorkflowError("Only the demo physician role may decide", 403)
+            elif case.status != State.AWAITING:
+                error = WorkflowError(f"Case is {case.status}; decision refused")
+            else:
+                detail = self._detail(conn, case_id)
+                if detail["case"]["status"] != State.AWAITING:
+                    error = WorkflowError("Case expired; decision refused")
+                elif not detail["safety_card"]:
+                    error = WorkflowError("Safety card missing; decision refused")
+                elif decision.action == "confirm" and detail["safety_card"]["level"] == Level.BLOCK:
+                    error = WorkflowError("Demo Rule Pack block cannot be confirmed")
+                else:
+                    self.store.event(conn, case_id, "physician_decision",
+                                     decision.model_dump(), self.clock())
+                    target = State.CONFIRMED if decision.action == "confirm" else State.REJECTED
+                    self.store.transition(conn, case_id, target, self.clock())
+            result = self._detail(conn, case_id)
+        if error:
+            raise error
+        return result
+
+    def list_cases(self) -> list[dict]:
+        with self.store.transaction() as conn:
+            ids = [row[0] for row in conn.execute("SELECT id FROM cases ORDER BY created_at,id")]
+            return [self._detail(conn, case_id)["case"] for case_id in ids]

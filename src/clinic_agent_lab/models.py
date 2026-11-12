@@ -112,3 +112,10 @@ class Event(Model):
     kind: str
     payload: dict
     timestamp: datetime
+
+
+class PhysicianDecision(Model):
+    action: Literal["confirm", "reject"]
+    role: Literal["physician", "observer"]
+    actor: str = Field(min_length=1, max_length=80)
+    reason: str | None = Field(default=None, max_length=500)
