@@ -1,0 +1,36 @@
+{
+  "id": "syn-009",
+  "synthetic": true,
+  "license": "Apache-2.0",
+  "note": "SYNTHETIC. Fictional patient. Not derived from any real record.",
+  "scenario": "overdose",
+  "patient": {
+    "resourceType": "Patient",
+    "id": "syn-009",
+    "name": "Pat syn-009"
+  },
+  "encounter": {
+    "resourceType": "Encounter",
+    "id": "enc-syn-009",
+    "subject": "syn-009",
+    "workflow": "outpatient-medication-demo"
+  },
+  "observations": [
+    {
+      "resourceType": "Observation",
+      "code": "creatinine",
+      "value": 1.0,
+      "unit": "mg/dL"
+    }
+  ],
+  "allergies": [],
+  "medications": [],
+  "proposed_order": {
+    "resourceType": "MedicationRequest",
+    "status": "draft",
+    "intent": "proposal",
+    "medication": "acetaminophen",
+    "dose_mg": 900
+  },
+  "expected_level": "block"
+}

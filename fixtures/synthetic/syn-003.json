@@ -1,0 +1,29 @@
+{
+  "id": "syn-003",
+  "synthetic": true,
+  "license": "Apache-2.0",
+  "note": "SYNTHETIC. Fictional patient. Not derived from any real record.",
+  "scenario": "missing_labs",
+  "patient": {
+    "resourceType": "Patient",
+    "id": "syn-003",
+    "name": "Pat syn-003"
+  },
+  "encounter": {
+    "resourceType": "Encounter",
+    "id": "enc-syn-003",
+    "subject": "syn-003",
+    "workflow": "outpatient-medication-demo"
+  },
+  "observations": [],
+  "allergies": [],
+  "medications": [],
+  "proposed_order": {
+    "resourceType": "MedicationRequest",
+    "status": "draft",
+    "intent": "proposal",
+    "medication": "acetaminophen",
+    "dose_mg": 250
+  },
+  "expected_level": "warn"
+}

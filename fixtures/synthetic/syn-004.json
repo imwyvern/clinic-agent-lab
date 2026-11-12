@@ -1,0 +1,41 @@
+{
+  "id": "syn-004",
+  "synthetic": true,
+  "license": "Apache-2.0",
+  "note": "SYNTHETIC. Fictional patient. Not derived from any real record.",
+  "scenario": "duplicate",
+  "patient": {
+    "resourceType": "Patient",
+    "id": "syn-004",
+    "name": "Pat syn-004"
+  },
+  "encounter": {
+    "resourceType": "Encounter",
+    "id": "enc-syn-004",
+    "subject": "syn-004",
+    "workflow": "outpatient-medication-demo"
+  },
+  "observations": [
+    {
+      "resourceType": "Observation",
+      "code": "creatinine",
+      "value": 1.0,
+      "unit": "mg/dL"
+    }
+  ],
+  "allergies": [],
+  "medications": [
+    {
+      "resourceType": "MedicationStatement",
+      "medication": "acetaminophen"
+    }
+  ],
+  "proposed_order": {
+    "resourceType": "MedicationRequest",
+    "status": "draft",
+    "intent": "proposal",
+    "medication": "acetaminophen",
+    "dose_mg": 250
+  },
+  "expected_level": "warn"
+}

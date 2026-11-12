@@ -1,0 +1,41 @@
+{
+  "id": "syn-002",
+  "synthetic": true,
+  "license": "Apache-2.0",
+  "note": "SYNTHETIC. Fictional patient. Not derived from any real record.",
+  "scenario": "allergy",
+  "patient": {
+    "resourceType": "Patient",
+    "id": "syn-002",
+    "name": "Pat syn-002"
+  },
+  "encounter": {
+    "resourceType": "Encounter",
+    "id": "enc-syn-002",
+    "subject": "syn-002",
+    "workflow": "outpatient-medication-demo"
+  },
+  "observations": [
+    {
+      "resourceType": "Observation",
+      "code": "creatinine",
+      "value": 1.0,
+      "unit": "mg/dL"
+    }
+  ],
+  "allergies": [
+    {
+      "resourceType": "AllergyIntolerance",
+      "substance": "penicillin"
+    }
+  ],
+  "medications": [],
+  "proposed_order": {
+    "resourceType": "MedicationRequest",
+    "status": "draft",
+    "intent": "proposal",
+    "medication": "amoxicillin",
+    "dose_mg": 250
+  },
+  "expected_level": "block"
+}
