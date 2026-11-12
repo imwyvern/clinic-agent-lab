@@ -1,5 +1,6 @@
 """Small FHIR-style demo objects, deliberately not a FHIR implementation."""
 
+from datetime import datetime
 from enum import StrEnum
 from typing import Literal
 
@@ -81,3 +82,33 @@ class SafetyCard(Model):
         "SYNTHETIC. Not a medical device. Demo Rule Pack only; not clinical guidance. "
         "No orders are executed."
     )
+
+
+class State(StrEnum):
+    ACCEPTED = "accepted"
+    GATHERING = "gathering"
+    DRAFTED = "drafted"
+    AWAITING = "awaiting_physician"
+    CONFIRMED = "confirmed"
+    REJECTED = "rejected"
+    EXPIRED = "expired"
+    FAILED = "failed"
+
+
+class Case(Model):
+    id: str
+    clientCaseId: str
+    fixture_id: str
+    patient_id: str
+    status: State
+    created_at: datetime
+    updated_at: datetime
+    expires_at: datetime
+
+
+class Event(Model):
+    id: int
+    case_id: str
+    kind: str
+    payload: dict
+    timestamp: datetime
