@@ -1,5 +1,7 @@
 from concurrent.futures import ThreadPoolExecutor
 
+import pytest
+
 from clinic_agent_lab.service import AgentService
 from clinic_agent_lab.store import Store
 from clinic_agent_lab.tools import TOOL_ORDER, Tools
@@ -51,3 +53,25 @@ def test_tools_supply_rule_context(tmp_path):
     detail = service.submit("gathered", "syn-001")
     assert detail["safety_card"]["level"] == "warn"
     assert detail["safety_card"]["missing_data"] == ["creatinine"]
+
+
+@pytest.mark.parametrize("status", ["active", "completed", "executed"])
+def test_malformed_order_instance_fails_without_persisting_draft(tmp_path, status):
+    class MalformedTools(Tools):
+        def draft_order(self, fixture):
+            return fixture.proposed_order.model_copy(update={"status": status})
+    service = AgentService(Store(tmp_path / "agent.db"), tools=MalformedTools())
+    detail = service.submit("invalid-order", "syn-001")
+    assert detail["case"]["status"] == "failed"
+    assert detail["draft"] is None and detail["safety_card"] is None
+
+
+def test_malformed_gathered_identity_fails(tmp_path):
+    class WrongPatient(Tools):
+        def get_patient_summary(self, fixture):
+            result = super().get_patient_summary(fixture)
+            result["patient"]["id"] = "other-synthetic-patient"
+            return result
+    service = AgentService(Store(tmp_path / "agent.db"), tools=WrongPatient())
+    detail = service.submit("invalid-patient", "syn-001")
+    assert detail["case"]["status"] == "failed" and detail["draft"] is None

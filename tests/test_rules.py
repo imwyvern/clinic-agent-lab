@@ -49,7 +49,8 @@ def test_combined_rules_preserve_block_and_all_evidence():
     assert card.conflicts
 
 
-@pytest.mark.parametrize("field,value", [("synthetic", False), ("license", "unknown")])
+@pytest.mark.parametrize("field,value", [("synthetic", False), ("synthetic", 1),
+                                       ("license", "unknown")])
 def test_reject_unmarked_or_unlicensed_fixture(field, value):
     data = get_fixture("syn-001").model_dump()
     data[field] = value

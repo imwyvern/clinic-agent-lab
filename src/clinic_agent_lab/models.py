@@ -4,11 +4,11 @@ from datetime import datetime
 from enum import StrEnum
 from typing import Literal
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
 
 
 class Model(BaseModel):
-    model_config = ConfigDict(extra="forbid", frozen=True)
+    model_config = ConfigDict(extra="forbid", frozen=True, revalidate_instances="always")
 
 
 class Level(StrEnum):
@@ -69,6 +69,21 @@ class Fixture(Model):
     medications: list[MedicationStatement]
     proposed_order: MedicationRequest
     expected_level: Level
+
+    @field_validator("synthetic", mode="before")
+    @classmethod
+    def explicit_synthetic_marker(cls, value):
+        if value is not True:
+            raise ValueError("synthetic must be the JSON boolean true")
+        return value
+
+    @model_validator(mode="after")
+    def fictional_identity(self):
+        if self.encounter.subject != self.patient.id:
+            raise ValueError("Encounter must refer to the synthetic patient")
+        if self.patient.id != self.id or self.patient.name != f"Pat {self.id}":
+            raise ValueError("Only obvious fictional patient labels are permitted")
+        return self
 
 
 class SafetyCard(Model):

@@ -85,15 +85,16 @@ class AgentService:
         with self.store.transaction() as conn:
             return self._detail(conn, case_id)
 
-    def _expire(self, conn, case_id: str):
+    def _expire(self, conn, case_id: str, now: datetime | None = None):
         case = self.store.case(conn, case_id)
-        now = self.clock()
+        now = now or self.clock()
         if case.status in {State.ACCEPTED, State.GATHERING, State.DRAFTED, State.AWAITING} \
                 and now >= case.expires_at:
             case = self.store.transition(conn, case_id, State.EXPIRED, now)
         return case
 
     def decide(self, case_id: str, decision: PhysicianDecision) -> dict:
+        decision = PhysicianDecision.model_validate(decision)
         error = None
         # Expiry must commit even when a late decision is refused. Raise after transaction.
         with self.store.transaction() as conn:
@@ -111,10 +112,14 @@ class AgentService:
                 elif decision.action == "confirm" and detail["safety_card"]["level"] == Level.BLOCK:
                     error = WorkflowError("Demo Rule Pack block cannot be confirmed")
                 else:
-                    self.store.event(conn, case_id, "physician_decision",
-                                     decision.model_dump(), self.clock())
-                    target = State.CONFIRMED if decision.action == "confirm" else State.REJECTED
-                    self.store.transition(conn, case_id, target, self.clock())
+                    decision_time = self.clock()
+                    if self._expire(conn, case_id, decision_time).status != State.AWAITING:
+                        error = WorkflowError("Case expired; decision refused")
+                    else:
+                        self.store.event(conn, case_id, "physician_decision",
+                                         decision.model_dump(), decision_time)
+                        target = State.CONFIRMED if decision.action == "confirm" else State.REJECTED
+                        self.store.transition(conn, case_id, target, decision_time)
             result = self._detail(conn, case_id)
         if error:
             raise error

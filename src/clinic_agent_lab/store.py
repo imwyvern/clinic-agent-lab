@@ -30,7 +30,7 @@ class Store:
         self.path = Path(path)
         self.path.parent.mkdir(parents=True, exist_ok=True)
         with self.transaction() as conn:
-            conn.executescript("""
+            schema = """
                 CREATE TABLE IF NOT EXISTS cases (
                     id TEXT PRIMARY KEY, clientCaseId TEXT UNIQUE NOT NULL,
                     fixture_id TEXT NOT NULL, patient_id TEXT NOT NULL, status TEXT NOT NULL,
@@ -45,7 +45,10 @@ class Store:
                     case_id TEXT PRIMARY KEY REFERENCES cases(id),
                     order_json TEXT NOT NULL, card_json TEXT NOT NULL
                 );
-            """)
+            """
+            for statement in schema.split(";"):
+                if statement.strip():
+                    conn.execute(statement)
 
     @contextmanager
     def transaction(self) -> Iterator[sqlite3.Connection]:

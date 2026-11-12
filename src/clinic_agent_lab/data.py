@@ -21,10 +21,6 @@ def load_fixtures() -> dict[str, Fixture]:
             fixture = Fixture.model_validate(json.loads(path.read_text(encoding="utf-8")))
             if fixture.id in result or path.name != f"{fixture.id}.json":
                 raise ValueError("Fixture IDs must be unique and match file names")
-            if fixture.encounter.subject != fixture.patient.id:
-                raise ValueError("Encounter must refer to the synthetic patient")
-            if fixture.patient.id != fixture.id or fixture.patient.name != f"Pat {fixture.id}":
-                raise ValueError("Only obvious fictional patient labels are permitted")
             result[fixture.id] = fixture
     if not result:
         raise ValueError("No synthetic fixtures found")
