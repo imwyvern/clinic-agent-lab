@@ -1,0 +1,42 @@
+{
+  "version": "0.1.0",
+  "fixture_count": 10,
+  "rule_count": 4,
+  "generated_at_hkt": "2026-11-12T11:52:21.731152+08:00",
+  "scope": "SYNTHETIC fixture rule hits and workflow checks only; not model accuracy.",
+  "results": {
+    "deterministic_rules": {
+      "passed": 10,
+      "total": 10
+    },
+    "idempotency": {
+      "passed": 10,
+      "total": 10
+    },
+    "draft_only": {
+      "passed": 10,
+      "total": 10
+    },
+    "fixture_block_hits": {
+      "passed": 3,
+      "total": 3
+    },
+    "block_confirmation_refusal": {
+      "passed": 3,
+      "total": 3
+    },
+    "missing_lab_warn": {
+      "passed": 2,
+      "total": 2
+    },
+    "warn_decisions": {
+      "passed": 4,
+      "total": 4
+    },
+    "expiry_refusal": {
+      "passed": 1,
+      "total": 1
+    }
+  },
+  "all_passed": true
+}

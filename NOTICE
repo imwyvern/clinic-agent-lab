@@ -1,0 +1,12 @@
+clinic-agent-lab
+Copyright 2026 imwyvern
+
+Code, documentation, original synthetic fixtures, and the self-authored Demo Rule Pack
+are licensed under the Apache License, Version 2.0. See LICENSE.
+
+All fixture data is fictional, created for this repository, and not derived from patient
+records. No external dataset is included. The simplified FHIR-style resource names do
+not imply conformance, certification, endorsement, or integration.
+
+This is not a medical device or clinical guidance. No orders are executed.
+Third-party Python dependencies remain under their respective licenses.
